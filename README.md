@@ -759,29 +759,29 @@ Warning：
 ### 1. Mean: 利用過去幾天的平均去預測未來的備轉容量
 包裝資料
 ```python
-    def create_data(past = 7, future = 7):
-        x_train = []
-        y_train = []
-        x_test = []
-        y_test = []
-        for i in range(past+future, len(data)+1):
-            t = data.iloc[i-past-future:i-future][['backup']]
-            y = data['備轉'].iloc[i-future:i]
-            if i < 2600:
-                x_train.append(t)
-                y_train.append(y)
-            else:
-                x_test.append(t)
-                y_test.append(y)
+def create_data(past = 7, future = 7):
+    x_train = []
+    y_train = []
+    x_test = []
+    y_test = []
+    for i in range(past+future, len(data)+1):
+        t = data.iloc[i-past-future:i-future][['backup']]
+        y = data['備轉'].iloc[i-future:i]
+        if i < 2600:
+            x_train.append(t)
+            y_train.append(y)
+        else:
+            x_test.append(t)
+            y_test.append(y)
 
-        x_train = np.array(x_train)
-        y_train = np.array(y_train)
-        x_test = np.array(x_test)
-        y_test = np.array(y_test)
+    x_train = np.array(x_train)
+    y_train = np.array(y_train)
+    x_test = np.array(x_test)
+    y_test = np.array(y_test)
     return x_train, y_train, x_test, y_test
 ```
 模型測試，測試要往前看幾天和往後看幾天，test data為3/14號往前28天
-```python=
+```python
 def mean_model(x_train, y_train, x_test, y_test, max_past_len, max_future_len, mode):
     #test mode
     if mode == "test":
@@ -905,56 +905,54 @@ past 10 future 7 160.0595167528463
             return model
         ```
     * training
-    ``` python=
-    x_train, y_train, x_test, y_test = create_data(7, 7)
-    regressor = buildmanytomany(x_train.shape)
-    print(x_train.shape)
-    # 進行訓練
-    regressor.fit(x_train, y_train, epochs = 650)
-    ```
+        ``` python=
+        x_train, y_train, x_test, y_test = create_data(7, 7)
+        regressor = buildmanytomany(x_train.shape)
+        print(x_train.shape)
+        # 進行訓練
+        regressor.fit(x_train, y_train, epochs = 650)
+        ```
     * model
-    ```python=
-    x_train, y_train, x_test, y_test = create_data(7, 7)
-    regressor = buildmanytomany(x_train.shape)
-    print(x_train.shape)
-    # 進行訓練
-    regressor.fit(x_train, y_train, epochs = 650)
-    ```
+        ```python
+        x_train, y_train, x_test, y_test = create_data(7, 7)
+        regressor = buildmanytomany(x_train.shape)
+        print(x_train.shape)
+        # 進行訓練
+        regressor.fit(x_train, y_train, epochs = 650)
+        ```
     * predict
-    ```pyton=
-    x_train, y_train, x_test, y_test = create_data(7, 7)
-    regressor = buildmanytomany(x_train.shape)
-    print(x_train.shape)
-    # 進行訓練
-    regressor.fit(x_train, y_train, epochs = 650)
-
-    ```
+        ```python
+        x_train, y_train, x_test, y_test = create_data(7, 7)
+        regressor = buildmanytomany(x_train.shape)
+        print(x_train.shape)
+        # 進行訓練
+        regressor.fit(x_train, y_train, epochs = 650)
+        ```
     * 多對一模型，利用過去7天，去預測未來1天模型，並且連續預測7天
         * build model
-        ```python=
-        def buildManyToOneModel(shape):
-            model = Sequential()
-            model.add(LSTM(10, input_length=shape[1], input_dim=shape[2], return_sequences=True))
-            model.add(Dense(units = 10))
-            model.add(Dropout(0.2))
-            model.add(Dense(units = 10))
-            model.add(Dropout(0.2))
-            model.add(Dense(1))
-            model.compile(loss="mse", optimizer="adam")
-            model.summary()
-            return model
-        ```
+            ```python
+            def buildManyToOneModel(shape):
+                model = Sequential()
+                model.add(LSTM(10, input_length=shape[1], input_dim=shape[2], return_sequences=True))
+                model.add(Dense(units = 10))
+                model.add(Dropout(0.2))
+                model.add(Dense(units = 10))
+                model.add(Dropout(0.2))
+                model.add(Dense(1))
+                model.compile(loss="mse", optimizer="adam")
+                model.summary()
+                return model
+            ```
     * training data
-        ```python=
+        ```python
         x_train, y_train, x_test, y_test = create_data(8, 1)
         print(x_train.shape)
         regressor = buildManyToOneModel(x_train.shape)
         # 進行訓練
         regressor.fit(x_train[-100:]*10, y_train[-100:], epochs = 350)
-
         ```
     * predict data
-        ```python=
+        ```python
         def lstm_model(x_train, y_train, x_test, y_test, model):
             err = 0
             result = []
@@ -974,7 +972,7 @@ past 10 future 7 160.0595167528463
 
 ### 3. NN model:利用NN的模型去尋找隔週data之間的關係。
 * data construct
-```python=
+    ```python
     def create_week_data(past = 3):
         # model = build()
         x_train = []
@@ -1001,33 +999,33 @@ past 10 future 7 160.0595167528463
         y_test = np.array(y_test)
         return x_train, y_train, x_test, y_test
     x_train, y_train, x_test, y_test = create_week_data(3)
-```
+    ```
 * model
-```python=
-past = 3
-x_train, y_train, x_test, y_test = create_week_data(past)
+    ```python
+    past = 3
+    x_train, y_train, x_test, y_test = create_week_data(past)
 
 
-model = baseline_model(x_test.shape)
-x_train = x_train.reshape(-1, past)
-x_test = x_test.reshape(-1, past)
-regr = MLPRegressor(random_state=1, max_iter=2000, hidden_layer_sizes=10).fit(x_train, y_train)
-```
+    model = baseline_model(x_test.shape)
+    x_train = x_train.reshape(-1, past)
+    x_test = x_test.reshape(-1, past)
+    regr = MLPRegressor(random_state=1, max_iter=2000, hidden_layer_sizes=10).fit(x_train, y_train)
+    ```
 * predict
-```python=
-predict = []
-for i in range(7):
-    x = x_test[-14+i].reshape(-1, past)
-    predict.append(regr.predict(x)[0])
-```
+    ```python
+    predict = []
+    for i in range(7):
+        x = x_test[-14+i].reshape(-1, past)
+        predict.append(regr.predict(x)[0])
+    ```
 * result
-```python=
-result = [2933, 3074, 3087, 3183, 3214, 3137, 2839]
-err = 0
-for i in range(7):
-    err += (result[i]-predict[i])**2
-    print(math.sqrt(err/7))
-```
+    ```python
+    result = [2933, 3074, 3087, 3183, 3214, 3137, 2839]
+    err = 0
+    for i in range(7):
+        err += (result[i]-predict[i])**2
+        print(math.sqrt(err/7))
+    ```
 		
 ## Shangrex's 總結
 因為每週之間的權重佔比變化比較大，沒辦法完全收斂，所以最後的結果總是比lincc還高，尤其是3/14。
