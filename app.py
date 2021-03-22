@@ -27,15 +27,6 @@ def remove_228(df):
 
 def fill_missing_val(df):
     ret = df.copy()
-    mar19 = pd.Series({'日期':'2021/03/19', '備轉容量(萬瓩)':327.2, '備轉容量率(%)':10.93, '星期':5, '備轉容量(MW)':3272.0})
-    ret = ret.append(mar19, ignore_index=True)
-
-    mar20 = pd.Series({'日期':'2021/03/20', '備轉容量(萬瓩)':307.5, '備轉容量率(%)':11.48, '星期':6, '備轉容量(MW)':3075})
-    ret = ret.append(mar20, ignore_index=True)
-
-    mar21 = pd.Series({'日期':'2021/03/21', '備轉容量(萬瓩)':298.3, '備轉容量率(%)':11.44, '星期':7, '備轉容量(MW)':2983})
-    ret = ret.append(mar21, ignore_index=True)
-
     mar22 = pd.Series({'日期':'2021/03/22', '備轉容量(萬瓩)':307.4, '備轉容量率(%)':10.22, '星期':1, '備轉容量(MW)':3074})
     ret = ret.append(mar22, ignore_index=True)
 
@@ -57,11 +48,11 @@ def model(train_df, interval, n):
         lst = list_by_day(train_df, len(train_df), day)
         lst.reverse()
         
-        if day != 7:
+        # ---
+        if day != 7 and day != 6:
             for j in range(len(lst)):
-                lst[j] = lst[j] + 70
-                if lst[j] < 3000:
-                    lst[j] = 3000
+                lst[j] = lst[j] + 50
+        # ---
         
         if n > len(lst):
             mean = sum(lst) / len(lst)
