@@ -757,277 +757,277 @@ Warning：
 總結，預測上只要抓住短時間(2019年以後)內的週期就可以了，根據台電的人員，我會以往前10天過去的資料去預測隔天的
 ## method
 ### 1. Mean: 利用過去幾天的平均去預測未來的備轉容量
-	包裝資料
-	```python
-	 def create_data(past = 7, future = 7):
-			x_train = []
-			y_train = []
-			x_test = []
-			y_test = []
-			for i in range(past+future, len(data)+1):
-				t = data.iloc[i-past-future:i-future][['backup']]
-				y = data['備轉'].iloc[i-future:i]
-				if i < 2600:
-					x_train.append(t)
-					y_train.append(y)
-				else:
-					x_test.append(t)
-					y_test.append(y)
+包裝資料
+```python
+    def create_data(past = 7, future = 7):
+        x_train = []
+        y_train = []
+        x_test = []
+        y_test = []
+        for i in range(past+future, len(data)+1):
+            t = data.iloc[i-past-future:i-future][['backup']]
+            y = data['備轉'].iloc[i-future:i]
+            if i < 2600:
+                x_train.append(t)
+                y_train.append(y)
+            else:
+                x_test.append(t)
+                y_test.append(y)
 
-			x_train = np.array(x_train)
-			y_train = np.array(y_train)
-			x_test = np.array(x_test)
-			y_test = np.array(y_test)
-    	return x_train, y_train, x_test, y_test
-	```
-	模型測試，測試要往前看幾天和往後看幾天，test data為3/14號往前28天
-	```python
-	def mean_model(x_train, y_train, x_test, y_test, max_past_len, max_future_len, mode):
-		#test mode
-		if mode == "test":
-			count = data['備轉'][:max_past_len]
-			count = count.values.tolist()
-			predict_list = []
-			for i in range(7):
-				predict = sum(count) / max_past_len
-				predict_list.append(predict)
-				count = count.pop(0)
-				count.append(predict)
-			return predict_list
-		#train mode
-		else:
-			err = 0
-			result = []
-			for i, j in zip(x_test, y_test):
-				count = [k[0] for k in i]
-				for h in j:
-					predict = sum(count)/len(count)
-					err += (predict-h)**2
-					count.pop(0)
-					count.append(predict)
-				err = math.sqrt(err/max_future_len)
-				result.append(err)
-				err = 0
+        x_train = np.array(x_train)
+        y_train = np.array(y_train)
+        x_test = np.array(x_test)
+        y_test = np.array(y_test)
+    return x_train, y_train, x_test, y_test
+```
+模型測試，測試要往前看幾天和往後看幾天，test data為3/14號往前28天
+```python=
+def mean_model(x_train, y_train, x_test, y_test, max_past_len, max_future_len, mode):
+    #test mode
+    if mode == "test":
+        count = data['備轉'][:max_past_len]
+        count = count.values.tolist()
+        predict_list = []
+        for i in range(7):
+            predict = sum(count) / max_past_len
+            predict_list.append(predict)
+            count = count.pop(0)
+            count.append(predict)
+        return predict_list
+    #train mode
+    else:
+        err = 0
+        result = []
+        for i, j in zip(x_test, y_test):
+            count = [k[0] for k in i]
+            for h in j:
+                predict = sum(count)/len(count)
+                err += (predict-h)**2
+                count.pop(0)
+                count.append(predict)
+            err = math.sqrt(err/max_future_len)
+            result.append(err)
+            err = 0
 
-			return sum(result)/len(result)
-	for i in range(1, 11):
-		for j in range(1, 8):
-			x_train, y_train, x_test, y_test = create_data(i, j)
-			print("past",i, "future", j, mean_model(x_train, y_train, x_test, y_test, i, j, "train"))
+        return sum(result)/len(result)
+for i in range(1, 11):
+    for j in range(1, 8):
+        x_train, y_train, x_test, y_test = create_data(i, j)
+        print("past",i, "future", j, mean_model(x_train, y_train, x_test, y_test, i, j, "train"))
 
-	```
-	結果：
-	```
-	past 1 future 1 151.41379310344828
-	past 1 future 2 179.79823390800894
-	past 1 future 3 194.7425855780763
-	past 1 future 4 203.48558309376423
-	past 1 future 5 207.76746222992378
-	past 1 future 6 211.75791090697138
-	past 1 future 7 212.6119237313435
-	past 2 future 1 145.1551724137931
-	past 2 future 2 165.03463789692958
-	past 2 future 3 179.59107739212575
-	past 2 future 4 189.58056634563434
-	past 2 future 5 195.32329523276132
-	past 2 future 6 196.85980399942432
-	past 2 future 7 193.38889932410663
-	past 3 future 1 139.44827586206893
-	past 3 future 2 164.6824806851891
-	past 3 future 3 177.51424193643348
-	past 3 future 4 183.5411259892367
-	past 3 future 5 187.84179979319882
-	past 3 future 6 188.19244060655242
-	past 3 future 7 182.485819567202
-	past 4 future 1 143.94827586206895
-	past 4 future 2 166.5319781008546
-	past 4 future 3 175.9036635424794
-	past 4 future 4 180.56602748536602
-	past 4 future 5 181.68210171774652
-	past 4 future 6 180.70728932521385
-	past 4 future 7 175.9194112913405
-	past 5 future 1 147.38620689655176
-	past 5 future 2 166.06213223809536
-	past 5 future 3 175.46447274466794
-	past 5 future 4 179.40721836744996
-	past 5 future 5 180.19841131107123
-	past 5 future 6 178.11205039279966
-	past 5 future 7 174.1325584915976
-	past 6 future 1 140.18965517241378
-	past 6 future 2 160.1665321934286
-	past 6 future 3 170.0038430455642
-	past 6 future 4 173.88728377277627
-	past 6 future 5 175.68718157267318
-	past 6 future 6 174.78914837789216
-	past 6 future 7 171.3865644366255
-	past 7 future 1 134.79802955665025
-	past 7 future 2 151.68731493174286
-	past 7 future 3 160.7376623067602
-	past 7 future 4 164.90945903286106
-	past 7 future 5 167.3367144671708
-	past 7 future 6 167.65450283134615
-	past 7 future 7 165.792102043254
-	past 8 future 1 131.2456896551724
-	past 8 future 2 146.59565201139836
-	past 8 future 3 154.73849836189487
-	past 8 future 4 158.96755695951373
-	past 8 future 5 161.2653762299115
-	past 8 future 6 162.0903252334757
-	past 8 future 7 161.09172009816754
-	past 9 future 1 135.32950191570885
-	past 9 future 2 148.6760313812843
-	past 9 future 3 155.61949568726467
-	past 9 future 4 159.24018478802412
-	past 9 future 5 161.20481867429885
-	past 9 future 6 161.93323458396787
-	past 9 future 7 161.19533601000532
-	past 10 future 1 135.27931034482756
-	past 10 future 2 148.03853073758447
-	past 10 future 3 154.05649266249495
-	past 10 future 4 157.33616928462044
-	past 10 future 5 159.24215239690537
-	past 10 future 6 160.45116390104045
-	past 10 future 7 160.0595167528463
-	```
-	以結果來說往前看7或8天似乎是最好的決定
+```
+結果：
+```
+past 1 future 1 151.41379310344828
+past 1 future 2 179.79823390800894
+past 1 future 3 194.7425855780763
+past 1 future 4 203.48558309376423
+past 1 future 5 207.76746222992378
+past 1 future 6 211.75791090697138
+past 1 future 7 212.6119237313435
+past 2 future 1 145.1551724137931
+past 2 future 2 165.03463789692958
+past 2 future 3 179.59107739212575
+past 2 future 4 189.58056634563434
+past 2 future 5 195.32329523276132
+past 2 future 6 196.85980399942432
+past 2 future 7 193.38889932410663
+past 3 future 1 139.44827586206893
+past 3 future 2 164.6824806851891
+past 3 future 3 177.51424193643348
+past 3 future 4 183.5411259892367
+past 3 future 5 187.84179979319882
+past 3 future 6 188.19244060655242
+past 3 future 7 182.485819567202
+past 4 future 1 143.94827586206895
+past 4 future 2 166.5319781008546
+past 4 future 3 175.9036635424794
+past 4 future 4 180.56602748536602
+past 4 future 5 181.68210171774652
+past 4 future 6 180.70728932521385
+past 4 future 7 175.9194112913405
+past 5 future 1 147.38620689655176
+past 5 future 2 166.06213223809536
+past 5 future 3 175.46447274466794
+past 5 future 4 179.40721836744996
+past 5 future 5 180.19841131107123
+past 5 future 6 178.11205039279966
+past 5 future 7 174.1325584915976
+past 6 future 1 140.18965517241378
+past 6 future 2 160.1665321934286
+past 6 future 3 170.0038430455642
+past 6 future 4 173.88728377277627
+past 6 future 5 175.68718157267318
+past 6 future 6 174.78914837789216
+past 6 future 7 171.3865644366255
+past 7 future 1 134.79802955665025
+past 7 future 2 151.68731493174286
+past 7 future 3 160.7376623067602
+past 7 future 4 164.90945903286106
+past 7 future 5 167.3367144671708
+past 7 future 6 167.65450283134615
+past 7 future 7 165.792102043254
+past 8 future 1 131.2456896551724
+past 8 future 2 146.59565201139836
+past 8 future 3 154.73849836189487
+past 8 future 4 158.96755695951373
+past 8 future 5 161.2653762299115
+past 8 future 6 162.0903252334757
+past 8 future 7 161.09172009816754
+past 9 future 1 135.32950191570885
+past 9 future 2 148.6760313812843
+past 9 future 3 155.61949568726467
+past 9 future 4 159.24018478802412
+past 9 future 5 161.20481867429885
+past 9 future 6 161.93323458396787
+past 9 future 7 161.19533601000532
+past 10 future 1 135.27931034482756
+past 10 future 2 148.03853073758447
+past 10 future 3 154.05649266249495
+past 10 future 4 157.33616928462044
+past 10 future 5 159.24215239690537
+past 10 future 6 160.45116390104045
+past 10 future 7 160.0595167528463
+```
+以結果來說往前看7或8天似乎是最好的決定
 ### 2. LSTM: 利用長短期記憶特性，觀察過去幾天去預測未來
-    * model:
-        * 多對多模型，利用過去7天，去預測未來7天
-        * model
-            ```python=
-            #lstm model
-            def buildmanytomany(shape):
-                model = Sequential()
-                model.add(LSTM(10, input_length=shape[1], input_dim=shape[2], return_sequences=True))
-                model.add(TimeDistributed(Dense(1)))
-                model.compile(loss="mse", optimizer="adam")
-                model.summary()
-                return model
-            ```
-        * training
-        ``` python=
-        x_train, y_train, x_test, y_test = create_data(7, 7)
-        regressor = buildmanytomany(x_train.shape)
-        print(x_train.shape)
-        # 進行訓練
-        regressor.fit(x_train, y_train, epochs = 650)
-        ```
-        * model
+* model:
+    * 多對多模型，利用過去7天，去預測未來7天
+    * model
         ```python=
-        x_train, y_train, x_test, y_test = create_data(7, 7)
-        regressor = buildmanytomany(x_train.shape)
-        print(x_train.shape)
-        # 進行訓練
-        regressor.fit(x_train, y_train, epochs = 650)
+        #lstm model
+        def buildmanytomany(shape):
+            model = Sequential()
+            model.add(LSTM(10, input_length=shape[1], input_dim=shape[2], return_sequences=True))
+            model.add(TimeDistributed(Dense(1)))
+            model.compile(loss="mse", optimizer="adam")
+            model.summary()
+            return model
         ```
-        * predict
-        ```pyton=
-        x_train, y_train, x_test, y_test = create_data(7, 7)
-        regressor = buildmanytomany(x_train.shape)
+    * training
+    ``` python=
+    x_train, y_train, x_test, y_test = create_data(7, 7)
+    regressor = buildmanytomany(x_train.shape)
+    print(x_train.shape)
+    # 進行訓練
+    regressor.fit(x_train, y_train, epochs = 650)
+    ```
+    * model
+    ```python=
+    x_train, y_train, x_test, y_test = create_data(7, 7)
+    regressor = buildmanytomany(x_train.shape)
+    print(x_train.shape)
+    # 進行訓練
+    regressor.fit(x_train, y_train, epochs = 650)
+    ```
+    * predict
+    ```pyton=
+    x_train, y_train, x_test, y_test = create_data(7, 7)
+    regressor = buildmanytomany(x_train.shape)
+    print(x_train.shape)
+    # 進行訓練
+    regressor.fit(x_train, y_train, epochs = 650)
+
+    ```
+    * 多對一模型，利用過去7天，去預測未來1天模型，並且連續預測7天
+        * build model
+        ```python=
+        def buildManyToOneModel(shape):
+            model = Sequential()
+            model.add(LSTM(10, input_length=shape[1], input_dim=shape[2], return_sequences=True))
+            model.add(Dense(units = 10))
+            model.add(Dropout(0.2))
+            model.add(Dense(units = 10))
+            model.add(Dropout(0.2))
+            model.add(Dense(1))
+            model.compile(loss="mse", optimizer="adam")
+            model.summary()
+            return model
+        ```
+    * training data
+        ```python=
+        x_train, y_train, x_test, y_test = create_data(8, 1)
         print(x_train.shape)
+        regressor = buildManyToOneModel(x_train.shape)
         # 進行訓練
-        regressor.fit(x_train, y_train, epochs = 650)
+        regressor.fit(x_train[-100:]*10, y_train[-100:], epochs = 350)
 
         ```
-        * 多對一模型，利用過去7天，去預測未來1天模型，並且連續預測7天
-            * build model
-            ```python=
-            def buildManyToOneModel(shape):
-                model = Sequential()
-                model.add(LSTM(10, input_length=shape[1], input_dim=shape[2], return_sequences=True))
-                model.add(Dense(units = 10))
-                model.add(Dropout(0.2))
-                model.add(Dense(units = 10))
-                model.add(Dropout(0.2))
-                model.add(Dense(1))
-                model.compile(loss="mse", optimizer="adam")
-                model.summary()
-                return model
-            ```
-        * training data
-            ```python=
-            x_train, y_train, x_test, y_test = create_data(8, 1)
-            print(x_train.shape)
-            regressor = buildManyToOneModel(x_train.shape)
-            # 進行訓練
-            regressor.fit(x_train[-100:]*10, y_train[-100:], epochs = 350)
-
-            ```
-        * predict data
-            ```python=
-            def lstm_model(x_train, y_train, x_test, y_test, model):
-                err = 0
-                result = []
-                for i,j in zip(x_test, y_test):
-                i = i.reshape(1, 8, 1)
-                print(i*10)
-                predict = model.predict(i)
-                print(predict)
-                predict = predict[0][0]
-                j = j[0]
-                err = (predict-j)**2
-                result.append(err)
-                print(math.sqrt(err))
-                return math.sqrt(sum(result)/len(result))
-            print(lstm_model(x_train, y_train, x_test, y_test, regressor))
-            ```
+    * predict data
+        ```python=
+        def lstm_model(x_train, y_train, x_test, y_test, model):
+            err = 0
+            result = []
+            for i,j in zip(x_test, y_test):
+            i = i.reshape(1, 8, 1)
+            print(i*10)
+            predict = model.predict(i)
+            print(predict)
+            predict = predict[0][0]
+            j = j[0]
+            err = (predict-j)**2
+            result.append(err)
+            print(math.sqrt(err))
+            return math.sqrt(sum(result)/len(result))
+        print(lstm_model(x_train, y_train, x_test, y_test, regressor))
+        ```
 
 ### 3. NN model:利用NN的模型去尋找隔週data之間的關係。
 * data construct
-    ```python=
-        def create_week_data(past = 3):
-            # model = build()
-            x_train = []
-            y_train = []
-            x_test = []
-            y_test = []
-            for i in range(0, len(data)-7*past):
-                t = []
-                for j in range(past):
-                    t.append(data.iloc[i+j*7][['備轉']])
-                    y = data['備轉'].iloc[i+j*7+7]
-                if i >= 2586 and i <= 2613:
-                    continue
-                if i < 2500:
-                    x_train.append(t)
-                    y_train.append(y)
-                else:
-                    x_test.append(t)
-                    y_test.append(y)
+```python=
+    def create_week_data(past = 3):
+        # model = build()
+        x_train = []
+        y_train = []
+        x_test = []
+        y_test = []
+        for i in range(0, len(data)-7*past):
+            t = []
+            for j in range(past):
+                t.append(data.iloc[i+j*7][['備轉']])
+                y = data['備轉'].iloc[i+j*7+7]
+            if i >= 2586 and i <= 2613:
+                continue
+            if i < 2500:
+                x_train.append(t)
+                y_train.append(y)
+            else:
+                x_test.append(t)
+                y_test.append(y)
 
-            x_train = np.array(x_train)
-            y_train = np.array(y_train)
-            x_test = np.array(x_test)
-            y_test = np.array(y_test)
-            return x_train, y_train, x_test, y_test
-        x_train, y_train, x_test, y_test = create_week_data(3)
-    ```
+        x_train = np.array(x_train)
+        y_train = np.array(y_train)
+        x_test = np.array(x_test)
+        y_test = np.array(y_test)
+        return x_train, y_train, x_test, y_test
+    x_train, y_train, x_test, y_test = create_week_data(3)
+```
 * model
-    ```python=
-    past = 3
-    x_train, y_train, x_test, y_test = create_week_data(past)
+```python=
+past = 3
+x_train, y_train, x_test, y_test = create_week_data(past)
 
 
-    model = baseline_model(x_test.shape)
-    x_train = x_train.reshape(-1, past)
-    x_test = x_test.reshape(-1, past)
-    regr = MLPRegressor(random_state=1, max_iter=2000, hidden_layer_sizes=10).fit(x_train, y_train)
-    ```
+model = baseline_model(x_test.shape)
+x_train = x_train.reshape(-1, past)
+x_test = x_test.reshape(-1, past)
+regr = MLPRegressor(random_state=1, max_iter=2000, hidden_layer_sizes=10).fit(x_train, y_train)
+```
 * predict
-    ```python=
-    predict = []
-    for i in range(7):
-        x = x_test[-14+i].reshape(-1, past)
-        predict.append(regr.predict(x)[0])
-    ```
+```python=
+predict = []
+for i in range(7):
+    x = x_test[-14+i].reshape(-1, past)
+    predict.append(regr.predict(x)[0])
+```
 * result
-    ```python=
-    result = [2933, 3074, 3087, 3183, 3214, 3137, 2839]
-    err = 0
-    for i in range(7):
-        err += (result[i]-predict[i])**2
-        print(math.sqrt(err/7))
-    ```
+```python=
+result = [2933, 3074, 3087, 3183, 3214, 3137, 2839]
+err = 0
+for i in range(7):
+    err += (result[i]-predict[i])**2
+    print(math.sqrt(err/7))
+```
 		
 ## Shangrex's 總結
 因為每週之間的權重佔比變化比較大，沒辦法完全收斂，所以最後的結果總是比lincc還高，尤其是3/14。
