@@ -894,7 +894,7 @@ past 10 future 7 160.0595167528463
 * model:
     * 多對多模型，利用過去7天，去預測未來7天
     * model
-        ```python=
+        ```python
         #lstm model
         def buildmanytomany(shape):
             model = Sequential()
@@ -905,7 +905,7 @@ past 10 future 7 160.0595167528463
             return model
         ```
     * training
-        ``` python=
+        ``` python
         x_train, y_train, x_test, y_test = create_data(7, 7)
         regressor = buildmanytomany(x_train.shape)
         print(x_train.shape)
