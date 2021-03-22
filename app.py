@@ -27,7 +27,7 @@ def remove_228(df):
 
 def fill_missing_val(df):
     ret = df.copy()
-    mar22 = pd.Series({'日期':'2021/03/22', '備轉容量(萬瓩)':307.4, '備轉容量率(%)':10.22, '星期':1, '備轉容量(MW)':3074})
+    mar22 = pd.Series({'日期':'2021/03/22', '備轉容量(萬瓩)':298.0, '備轉容量率(%)':10.22, '星期':1, '備轉容量(MW)':2980})
     ret = ret.append(mar22, ignore_index=True)
 
     return ret
@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
     # fill up to 2021/03/22
     df_training = fill_missing_val(df_training)
-
+    print(df_training)
     # predict
     pred = model(df_training, 7, 3)
 
